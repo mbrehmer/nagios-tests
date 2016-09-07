@@ -171,4 +171,3 @@ case $PROTOCOL in
 		NETSTAT_OPTS=${NETSTAT_OPTS}tu
 		;;
 esac
-echo $PROTO_CODE
