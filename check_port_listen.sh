@@ -5,7 +5,7 @@
 # A Nagios Plugin that checks if there is any program listening on a specified #
 # TCP/UDP port.                                                                #
 #                                                                              #
-# Copyright (C) 2016 by Martin Brehmer <software@mbrehmer.de>                  #
+# Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>                     #
 #                                                                              #
 # This program is free software; you can redistribute it and/or modify         #
 # it under the terms of the GNU General Public License as published by         #
@@ -31,3 +31,15 @@ STATE_UNKNOWN=3
 STATE_DEPENDENT=4
 
 PROG_NAME=$(basename $0)
+
+print_version()
+{
+	cat <<EOF
+$PROG_NAME $VERSION
+
+Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>
+This is free software.  You may redistribute copies of it under the terms of
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+There is NO WARRANTY, to the extent permitted by law.
+EOF
+}
