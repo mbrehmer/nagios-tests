@@ -154,3 +154,21 @@ if [[ ! $PORT =~ $re ]] || [[ $PORT -ge 65535 ]] || [[ $PORT -le 0 ]]; then
 	echo "You MUST specify a valid port number with option: '-p|--port <PORT_NUMBER>'" >&2
 	exit 1;
 fi
+
+# protocol parameter for netstat
+NETSTAT_OPTS="-ln"
+case $PROTOCOL in
+	udp)
+		PROTO_CODE=udp
+		NETSTAT_OPTS=${NETSTAT_OPTS}u
+		;;
+	tcp)
+		PROTO_CODE=tcp
+		NETSTAT_OPTS=${NETSTAT_OPTS}t
+		;;
+	any)
+		PROTO_CODE="(tcp|udp)"
+		NETSTAT_OPTS=${NETSTAT_OPTS}tu
+		;;
+esac
+echo $PROTO_CODE
