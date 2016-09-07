@@ -76,20 +76,29 @@ EOF
 }
 
 SHORT_OPTS="p:P:l:vVh"
-LONG_OPTS="port,protocoll,listen,version,verbose,help"
+LONG_OPTS="port:,protocol:,listen:,version,verbose,help"
 
 # parameter processing
 $(getopt -T >/dev/null 2>&1)
 if [[ $? -eq 4 ]]; then
-	OPTS=$(getopt -o $SHORT_OPTS --long $LONG_OPTS -n "$PROG_NAME" -- "$@")
+	OPTS=$(getopt -o $SHORT_OPTS -l $LONG_OPTS -n "$PROG_NAME" -- "$@")
 else
 	case $1 in
 		--version)
 			print_version
 			exit 0
-		;;
+			;;
+		--help)
+			print_help
+			exit 0
+			;;
 	esac
 	OPTS=$(getopt $SHORT_OPTS "$@")
+fi
+
+if [[ $? -ne 0 ]]; then
+	print_help
+	exit 1
 fi
 
 eval set -- "$OPTS"
@@ -138,3 +147,10 @@ while [[ $# -gt 0 ]]; do
 			;;
 	esac
 done
+
+# port number validation
+re="^[0-9]+$"
+if [[ ! $PORT =~ $re ]] || [[ $PORT -ge 65535 ]] || [[ $PORT -le 0 ]]; then
+	echo "You MUST specify a valid port number with option: '-p|--port <PORT_NUMBER>'" >&2
+	exit 1;
+fi
