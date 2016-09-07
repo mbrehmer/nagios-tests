@@ -1,0 +1,10 @@
+!.gitignore
+!.gitattributes
+
+# backup files
+*~
+*.bak
+*.orig
+
+# swap files
+*.swp
