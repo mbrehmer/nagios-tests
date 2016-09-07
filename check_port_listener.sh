@@ -46,8 +46,37 @@ There is NO WARRANTY, to the extent permitted by law.
 EOF
 }
 
-SHORT_OPTS="p:P:l:vV"
-LONG_OPTS="port,protocoll,listen,version,verbose"
+print_help()
+{
+	cat <<EOF
+Usage: check_port_listener.sh [-v] [-l <IP_ADDRESS>] -p <PORT_NUMBER>
+                              [-P <tcp|udp|any>=tcp]
+
+A Nagios Plugin that checksif there is any program listening on a specified
+TCP/UDP port.
+
+Options:
+  -h, --help                     print this message
+  -l, --listen <IP_ADDRESS>      Specify the listening address
+  -p, --port <PORT_NUMBER>       The port number to test
+  -P, --protocoll <tcp|udp|any>  The upper-layer protocol to test for
+  -v, --verbose                  verbose output
+  -V, --version                  print version information
+
+Examples:
+
+To check if some daemon is listening on port 80, with TCP protocol:
+  $ ./check_port_listener.sh -p 80
+
+To check if the server is able to answer to TCP or UDP DNS requests:
+  $ ./check_port_listener.sh -p 53 -P any
+
+Report bugs to <software@mbrehmer.de>
+EOF
+}
+
+SHORT_OPTS="p:P:l:vVh"
+LONG_OPTS="port,protocoll,listen,version,verbose,help"
 
 # parameter processing
 $(getopt -T >/dev/null 2>&1)
@@ -94,6 +123,10 @@ while [[ $# -gt 0 ]]; do
 		-v|--verbose)
 			VERBOSE=true
 			shift
+			;;
+		-h|--help)
+			print_help
+			exit 0
 			;;
 		--)
 			shift
