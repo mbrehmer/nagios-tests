@@ -22,3 +22,12 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.           #
 #                                                                              #
 ################################################################################
+
+VERSION=0.1
+
+STATE_OK=0
+STATE_CRITICAL=2
+STATE_UNKNOWN=3
+STATE_DEPENDENT=4
+
+PROG_NAME=$(basename $0)
