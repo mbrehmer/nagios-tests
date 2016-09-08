@@ -13,7 +13,7 @@ Follow the branching-, committing- and coding conventions below.
 
 * **Always** do your work on feature branches and follow the Workrflow for working with feature branches.
 * **Always** make **this repository** your additional upstream repository.<br/>
-You can to that this way:
+You can do that this way:
 ```
 $ git remote add upstream https://github.com/mbrehmer/nagios-tests.git
 ```
