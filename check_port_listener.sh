@@ -171,3 +171,20 @@ case $PROTOCOL in
 		NETSTAT_OPTS=${NETSTAT_OPTS}tu
 		;;
 esac
+
+NETSTAT=$(which netstat)
+NET_SED='sed -nr -e "s/^([a-zA-Z0-9]+) [0-9 ]+ ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+|[:0-9]+) +.*/\1,\2/p"'
+NET_GREP="grep \":$PORT$\" | grep -E \"$PROTO_CODE\""
+
+if [[ $ADDRESS != "0.0.0.0" ]]; then
+	NET_GREP="$NET_GREP | grep \"$ADDRESS\""
+fi
+
+CMD="$NETSTAT $NETSTAT_OPTS | $NET_SED | $NET_GREP"
+
+if [[ $VERBOSE ]]; then
+	echo $CMD
+	eval $CMD
+else
+	eval $CMD 2&1 >/dev/null
+fi
