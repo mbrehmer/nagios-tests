@@ -188,3 +188,12 @@ if [[ $VERBOSE -eq 1 ]]; then
 else
 	eval $CMD 2>&1 >/dev/null
 fi
+
+# print test result
+if [[ $? -eq 0 ]]; then
+	echo "OK - Listening on ${ADDRESS}:${PORT} (protocol: $PROTOCOL)"
+	exit $STATE_OK
+else
+	echo "CRITICAL - No service listening on ${ADDRESS}:${PORT} (protocol: $PROTOCOL)"
+	exit $STATE_CRITICAL
+fi
