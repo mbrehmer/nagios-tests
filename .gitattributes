@@ -1,3 +1,4 @@
 * text=auto
 
-*.sh text
+check_port_listener text eol=lf
+*.txt text
