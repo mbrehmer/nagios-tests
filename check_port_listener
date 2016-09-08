@@ -59,7 +59,7 @@ Options:
   -h, --help                     print this message
   -l, --listen <IP_ADDRESS>      Specify the listening address
   -p, --port <PORT_NUMBER>       The port number to test
-  -P, --protocoll <tcp|udp|any>  The upper-layer protocol to test for
+  -P, --protocol <tcp|udp|any>   The upper-layer protocol to test for
   -v, --verbose                  verbose output
   -V, --version                  print version information
 
