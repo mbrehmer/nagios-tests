@@ -109,7 +109,7 @@ declare -i PORT
 PORT=0
 ADDRESS="0.0.0.0"
 PROTOCOL="tcp"
-VERBOSE=false
+VERBOSE=0
 
 while [[ $# -gt 0 ]]; do
 	case $1 in
@@ -130,7 +130,7 @@ while [[ $# -gt 0 ]]; do
 			shift 2
 			;;
 		-v|--verbose)
-			VERBOSE=true
+			VERBOSE=1
 			shift
 			;;
 		-h|--help)
@@ -182,9 +182,9 @@ fi
 
 CMD="$NETSTAT $NETSTAT_OPTS | $NET_SED | $NET_GREP"
 
-if [[ $VERBOSE ]]; then
+if [[ $VERBOSE -eq 1 ]]; then
 	echo $CMD
 	eval $CMD
 else
-	eval $CMD 2&1 >/dev/null
+	eval $CMD 2>&1 >/dev/null
 fi
