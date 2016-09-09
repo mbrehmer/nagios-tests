@@ -111,3 +111,21 @@ while [[ $# -gt 0 ]]; do
 			;;
 	esac
 done
+
+CMD="echo -e \"GET http://google.com HTTP/1.0\n\n\" | nc google.com 80"
+
+if [[ $VERBOSE -eq 1 ]]; then
+	echo $CMD
+	eval $CMD
+else
+	eval $CMD 2>&1 >/dev/null
+fi
+
+# print test result
+if [[ $? -eq 0 ]];then
+	echo "OK - This machine has access to the internet"
+	exit $STATE_OK
+else
+	echo "CRITICAL - This machine has NO access to the internet"
+	exit $STATE_CRITICAL
+fi
