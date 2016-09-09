@@ -30,3 +30,18 @@ STATE_WARNING=1
 STATE_CRITICAL=2
 STATE_UNKNOWN=3
 STATE_DEPENDENT=4
+
+PROG_NAME=$(basename $0)
+
+print_version()
+{
+	cat <<EOF
+$PROG_NAME $VERSION
+
+Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>
+
+This is free software.  You may redistribute copies of it under the terms of
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+There is NO WARRANTY, to the extent permitted by law.
+EOF
+}
