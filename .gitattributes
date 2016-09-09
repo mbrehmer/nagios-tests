@@ -3,3 +3,4 @@
 check_port_listener text eol=lf
 check_internet_access text eol=lf
 *.txt text
+*.md text
