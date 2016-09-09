@@ -1,0 +1,131 @@
+#!/bin/bash
+
+################################################################################
+#                                                                              #
+# A Nagios Plugin that checks if the locale machine has access to the internet #
+#                                                                              #
+# Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>                     #
+#                                                                              #
+# This program is free software; you can redistribute it and/or modify         #
+# it under the terms of the GNU General Public License as published by         #
+# the Free Software Foundation; either version 3, or (at your option)          #
+# any later version.                                                           #
+#                                                                              #
+# This program is distributed in the hope that it will be useful,              #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of               #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                #
+# GNU General Public License for more details.                                 #
+#                                                                              #
+# You should have received a copy of the GNU General Public License            #
+# along with this program; if not, write to the Free Software Foundation,      #
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.           #
+#                                                                              #
+################################################################################
+
+VERSION=0.1
+
+STATE_OK=0
+STATE_WARNING=1
+STATE_CRITICAL=2
+STATE_UNKNOWN=3
+STATE_DEPENDENT=4
+
+PROG_NAME=$(basename $0)
+
+print_version()
+{
+	cat <<EOF
+$PROG_NAME $VERSION
+
+Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>
+
+This is free software.  You may redistribute copies of it under the terms of
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+There is NO WARRANTY, to the extent permitted by law.
+EOF
+}
+
+print_help()
+{
+	cat <<EOF
+Usage: check_internet_access [-v] [-V] [-h]
+
+A Nagios Plugin that checks if the locale machine has access to the internet
+
+Options:
+  -h, --help     print this message
+  -v, --verbose  verbose output
+  -V, --version  print version information
+
+Report bugs to <software@mbrehmer.de>
+EOF
+}
+
+SHORT_OPTS="vVh"
+LONG_OPTS="verbose,version,help"
+
+# parameter processing
+$(getopt -T >/dev/null 2>&1)
+if [[ $? -eq 4 ]]; then
+	OPTS=$(getopt -o $SHORT_OPTS -l $LONG_OPTS -n "$PROG_NAME" -- "$@")
+else
+	case $1 in
+		--version)
+			print_version
+			exit 0
+			;;
+		--help)
+			print_help
+			exit 0
+			;;
+	esac
+	OPTS=$(getopt $SHORT_OPTS "$@")
+fi
+
+eval set --"$OPTS"
+
+# default values
+VERBOSE=0
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		-v|--verbose)
+			VERBOSE=1
+			shift
+			;;
+		-V|--version)
+			print_version
+			exit 0
+			;;
+		-h|--help)
+			print_help
+			exit 0
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			echo "Internal Error: parameter processing error: $1" >&2
+			exit 1
+			;;
+	esac
+done
+
+CMD="echo -e \"GET http://google.com HTTP/1.0\n\n\" | nc google.com 80"
+
+if [[ $VERBOSE -eq 1 ]]; then
+	echo $CMD
+	eval $CMD
+else
+	eval $CMD 2>&1 >/dev/null
+fi
+
+# print test result
+if [[ $? -eq 0 ]];then
+	echo "OK - This machine has access to the internet"
+	exit $STATE_OK
+else
+	echo "CRITICAL - This machine has NO access to the internet"
+	exit $STATE_CRITICAL
+fi

@@ -6,3 +6,8 @@ This script checks if there is **any** service listening on a specified port of 
 It uses a combination of the Linux commands netstat, sed and grep to do that.
 This way the script can be used out of the box, but **only on Linux**.<br/>
 Use it with the parameter -h or --help to get usage- and parameter information.
+
+## check_internet_access ##
+This script checks if the **local** machine has access to the internet.<br/>
+It sends an HTTP request to google.com.<br/>
+Use it with the parameter -h or --help to get usage- and parameter information.
