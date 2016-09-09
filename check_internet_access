@@ -2,8 +2,7 @@
 
 ################################################################################
 #                                                                              #
-# A Nagios Plugin that checks if there is any program listening on a specified #
-# TCP/UDP port.                                                                #
+# A Nagios Plugin that checks if the locale machine has access to the internet #
 #                                                                              #
 # Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>                     #
 #                                                                              #
@@ -43,5 +42,21 @@ Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>
 This is free software.  You may redistribute copies of it under the terms of
 the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
 There is NO WARRANTY, to the extent permitted by law.
+EOF
+}
+
+print_help()
+{
+	cat <<EOF
+Usage: check_internet_access [-v] [-V] [-h]
+
+A Nagios Plugin that checks if the locale machine has access to the internet
+
+Options:
+  -h, --help     print this message
+  -v, --verbose  verbose output
+  -V, --version  print version information
+
+Report bugs to <software@mbrehmer.de>
 EOF
 }
