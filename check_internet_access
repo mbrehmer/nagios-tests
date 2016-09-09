@@ -60,3 +60,54 @@ Options:
 Report bugs to <software@mbrehmer.de>
 EOF
 }
+
+SHORT_OPTS="vVh"
+LONG_OPTS="verbose,version,help"
+
+# parameter processing
+$(getopt -T >/dev/null 2>&1)
+if [[ $? -eq 4 ]]; then
+	OPTS=$(getopt -o $SHORT_OPTS -l $LONG_OPTS -n "$PROG_NAME" -- "$@")
+else
+	case $1 in
+		--version)
+			print_version
+			exit 0
+			;;
+		--help)
+			print_help
+			exit 0
+			;;
+	esac
+	OPTS=$(getopt $SHORT_OPTS "$@")
+fi
+
+eval set --"$OPTS"
+
+# default values
+VERBOSE=0
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		-v|--verbose)
+			VERBOSE=1
+			shift
+			;;
+		-V|--version)
+			print_version
+			exit 0
+			;;
+		-h|--help)
+			print_help
+			exit 0
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			echo "Internal Error: parameter processing error: $1" >&2
+			exit 1
+			;;
+	esac
+done
