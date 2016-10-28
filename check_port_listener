@@ -52,7 +52,7 @@ print_help()
 Usage: check_port_listener [-v] [-l <IP_ADDRESS>] -p <PORT_NUMBER>
                            [-P <tcp|udp|any>=tcp]
 
-A Nagios Plugin that checksif there is any program listening on a specified
+A Nagios Plugin that checks if there is any program listening on a specified
 TCP/UDP port.
 
 Options:
