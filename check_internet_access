@@ -50,7 +50,7 @@ print_help()
 	cat <<EOF
 Usage: check_internet_access [-v] [-V] [-h]
 
-A Nagios Plugin that checks if the locale machine has access to the internet
+A Nagios Plugin that checks if the local machine has access to the internet
 
 Options:
   -h, --help     print this message
