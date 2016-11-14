@@ -53,13 +53,13 @@ Usage: check_printer -p <PRINTER_IP> -c <COMMUNITY> -t <TEST>
 A Nagios Plugin that checks printers and their consumables, using SNMP.
 
 Options:
-   -h, --help                   	print this message
-   -p, --printer <PRINTER_IP>   	IP address of the printer to test
+   -h, --help                    print this message
+   -p, --printer <PRINTER_IP>    IP address of the printer to test
    -c. --community <COMMUNITY>   the community string for the test
    -t, --test <TEST>             the test to do
-   -V, --version                	print version information
+   -V, --version                 print version information
 
-values for<TEST> can be:
+values for <TEST> can be:
    MESSAGE           checks for messages
    MODEL             returns the model of the printer
    CONSUM_TEST       returns the names of all consumables
@@ -71,3 +71,73 @@ values for<TEST> can be:
    PAGECOUNT         returns the count of sites printed
 EOF
 }
+
+SHORT_OPS="p:c:t:Vh"
+LONG_OPTS="printer:,community:,test:,verbose,help"
+
+# parameter processing
+$(getopt -T </dev/null 2>&1)
+if [[ $? -eq 4 ]]; then
+	OPTS=$(getopt -o $SHORT_OPTS -l $LONG_OPTS -- "$@")
+else
+	case $1 in
+		--version)
+			print_version
+			exit 0
+			;;
+		--help)
+			print_help
+			exit 0
+			;;
+	esac
+	OPTS=$(getopt $SHORT_OPTS "$@")
+fi
+
+if [[ $? -ne 0 ]]; then
+	print_help
+	exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		-V|--version)
+			print_version
+			exit 0
+			;;
+		-h|--help)
+			print_help
+			exit 0
+			;;
+		-p|--printer)
+			HOST=$2
+			shift 2
+			;;
+		-c|--community)
+			COMMUNITY=$2
+			shift 2
+			;;
+		-t|--test)
+			TEST=$2
+			if [[ $TEST == "CONSUM" ]]; then
+				CONSUMABLE=$3
+				shift 3
+			else
+				shift 2
+			fi
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			echo "Internal Error: parameter processing error: $1" >&2
+			exit 1
+			;;
+	esac
+done
+
+if [[ -z $HOST ]] || [[ -z $COMMUNITY ]] || [[ -z $TEST ]]; then
+	echo -e "Internal Error: not all necessary parameters have been set \n" >&2
+	print_help
+	exit 1
+fi
