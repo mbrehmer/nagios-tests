@@ -31,6 +31,11 @@ STATE_DEPENDENT=4
 
 PROG_NAME=$(basename $0)
 
+SNMPGET=$(which snmpget)
+SNMPWALK=$(which snmpwalk)
+
+_MODEL="HP Officejet Pro 8620"
+
 print_version()
 {
 	cat <<EOF
@@ -70,6 +75,19 @@ values for <TEST> can be:
    PAPER3            checks the amount of papar in tray no.3
    PAGECOUNT         returns the count of sites printed
 EOF
+}
+
+test_model()
+{
+	MODEL=$($SNMPGET -v 1 -c $COMMUNITY $HOST host.hrDevice.hrDeviceTable.hrDeviceEntry.hrDeviceDescr.1 2>/dev/null | cut -d " " -f4-)
+	
+	if [[ $MODEL == $_MODEL ]]; then
+		echo "OK - The printer model is right."
+		exit $STATE_OK
+	else
+		echo "CRITICAL - Wrong printer model: $MODEL"
+		exit $STATE_CRITICAL
+	fi
 }
 
 SHORT_OPS="p:c:t:Vh"
@@ -140,4 +158,9 @@ if [[ -z $HOST ]] || [[ -z $COMMUNITY ]] || [[ -z $TEST ]]; then
 	echo -e "Internal Error: not all necessary parameters have been set \n" >&2
 	print_help
 	exit 1
+fi
+
+# test execution
+if [[ $TEST == "MODEL" ]];then
+	test_model
 fi
