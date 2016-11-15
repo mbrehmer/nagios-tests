@@ -34,8 +34,6 @@ PROG_NAME=$(basename $0)
 SNMPGET=$(which snmpget)
 SNMPWALK=$(which snmpwalk)
 
-_MODEL="HP Officejet Pro 8620"
-
 print_version()
 {
 	cat <<EOF
@@ -65,28 +63,16 @@ Options:
    -V, --version                 print version information
 
 values for <TEST> can be:
-   MESSAGE           checks for messages
-   MODEL             returns the model of the printer
-   CONSUM_TEST       returns the names of all consumables
-   CONSUM_ALL        checks all consumables at once
-   CONSUM <String>   checks the status of the consumable with the name <String>
-   PAPER1            checks the amount of paper in tray no. 1
-   PAPER2            checks the amount of papaer in tray no.2
-   PAPER3            checks the amount of papar in tray no.3
-   PAGECOUNT         returns the count of sites printed
+   CONSUM      checks all consumables
+   PAPER1      checks the amount of paper in tray no. 1
+   PAPER2      checks the amount of papaer in tray no.2
+   PAPER3      checks the amount of papar in tray no.3
+   PAGECOUNT   returns the count of sites printed
 EOF
 }
 
-test_model()
+test_consumables()
 {
-	MODEL=$($SNMPGET -v 1 -c $COMMUNITY $HOST host.hrDevice.hrDeviceTable.hrDeviceEntry.hrDeviceDescr.1 2>/dev/null | cut -d " " -f4-)
-	
-	if [[ $MODEL == $_MODEL ]]; then
-		echo "OK - The printer model is right."
-		exit $STATE_OK
-	else
-		echo "CRITICAL - Wrong printer model: $MODEL"
-		exit $STATE_CRITICAL
 	fi
 }
 
@@ -149,7 +135,7 @@ while [[ $# -gt 0 ]]; do
 			;;
 		*)
 			echo "Internal Error: parameter processing error: $1" >&2
-			exit 1
+			exit $STATE_UNKNOWN
 			;;
 	esac
 done
@@ -157,10 +143,10 @@ done
 if [[ -z $HOST ]] || [[ -z $COMMUNITY ]] || [[ -z $TEST ]]; then
 	echo -e "Internal Error: not all necessary parameters have been set \n" >&2
 	print_help
-	exit 1
+	exit $STATE_UNKNOWN
 fi
 
 # test execution
-if [[ $TEST == "MODEL" ]];then
-	test_model
+if [[ $TEST == "CONSUM" ]]; then
+	test_consumables
 fi
