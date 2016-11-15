@@ -21,7 +21,7 @@
 #                                                                              #
 ################################################################################
 
-VERSION=1.0
+VERSION=0.1
 
 STATE_OK=0
 STATE_WARNING=1
@@ -73,7 +73,60 @@ EOF
 
 test_consumables()
 {
+	EXITCODE=$STATE_OK
+	EXITSTRING=""
+
+	for ID in $($SNMPWALK -v1 -c $COMMUNITY $HOST  1.3.6.1.2.1.43.11.1.1.6.1 2>/dev/null | egrep -oe '[[:digit:]]+\ =' | cut -d " " -f1); do
+		NAME=$($SNMPGET -v1 -c $COMMUNITY $HOST  1.3.6.1.2.1.43.11.1.1.6.1.$ID 2>/dev/null | cut -d " " -f4- | tr -d "\"")
+		if [[ -z $NAME ]]; then
+			echo "Error: OIS not found" >&2
+			exit $STATUS_UNKNOWN
+		fi
+
+		STATUS=$($SNMPGET -v 1 -c $COMMUNITY $HOST 1.3.6.1.2.1.43.11.1.1.9.1.$ID 2>/dev/null |cut -d " " -f4- |tr -d "\"")
+		FULL=$($SNMPGET -v 1 -c $COMMUNITY $HOST 1.3.6.1.2.1.43.11.1.1.8.1.$ID 2>/dev/null |cut -d " " -f4- |tr -d "\"")
+
+		if [[ $FULL -gt 0 ]] && [[ $STATUS -gt 0 ]]; then
+			let "STATUS= $STATUS * 100 / $FULL"
+			if [[ $STATUS -gt 30 ]]; then
+				EXITSTRING="$EXITSTRING $NAME is at ${STATUS}%,"
+			elif [[ $STATUS -lt 30 ]] && [[ $STATUS -gt 10 ]]; then
+				EXITSTRING="$EXITSTRING $NAME is at ${STATUS}%,"
+				if [[ $EXITCODE -lt $STATE_WARNING ]]; then
+					EXITCODE=$STATE_WARNING
+				fi
+			elif [[ $STATUS -le 10 ]]; then
+				EXITSTRING="$EXITSTRING $NAME is at ${STATUS}%,"
+				EXITCODE=$CRITICAL_STATE
+			fi
+		elif [[ $STATUS -eq -3 ]]; then
+			EXITSTRING="$EXITSTRING $NAME is FULL,"
+		elif [[ $STATUS -eq -2 ]]; then
+			EXITSTRING="$EXITSTRING $NAME is at warning level,"
+			if [[ $EXITCODE -lt $STATE_WARNING ]]; then
+				EXITCODE=$STATE_WARNING
+			fi
+		elif [[ $STATUS -eq 0 ]]; then
+			EXITSTRING="$EXITSTRING $NAME is at critical level,"
+			EXITCODE=$STATE_CRITICAL
+		else
+			EXITSTRING="Error: The status of $NAME is unknown."
+			exit $STATE_WARNING
+		fi
+
+		unset NAME
+	done
+
+	if [[ $EXITCODE -eq $STATE_OK ]]; then
+		EXITSTRING="OK -$EXITSTRING"
+	elif [[ $EXITCODE -eq $STATE_WARNING ]]; then
+		EXITSTRING="WARNING -$EXITSTRING"
+	elif [[ $EXITCODE -eq $STATE_CRITICAL ]]; then
+		EXITSTRING="CRITICAL -$EXITSTRING"
 	fi
+
+	echo "$EXITSTRING"
+	exit $EXITCODE
 }
 
 SHORT_OPS="p:c:t:Vh"
@@ -122,12 +175,7 @@ while [[ $# -gt 0 ]]; do
 			;;
 		-t|--test)
 			TEST=$2
-			if [[ $TEST == "CONSUM" ]]; then
-				CONSUMABLE=$3
-				shift 3
-			else
-				shift 2
-			fi
+			shift 2
 			;;
 		--)
 			shift
