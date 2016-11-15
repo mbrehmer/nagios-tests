@@ -17,11 +17,12 @@ You can do that this way:
 ```
 $ git remote add upstream https://github.com/mbrehmer/nagios-tests.git
 ```
-* **Never** merge your feature branches as fast-forward merges into the master branch.<br/>
+* **Always** clone/fork the branch develop, instead of master. master is reserved for stable code only.
+* **Never** merge your feature branches as fast-forward merges into the develop branch.<br/>
 If you have finished a feature branch and want to merge it into your master branch, do it this way:
 ```
-$ git checkout master
-$ git pull --ff-only upstream/master
+$ git checkout develop
+$ git pull --ff-only upstream/develop
 $ git merge --no-ff feature-a -m "[ADD] feature a"
 ```
 
