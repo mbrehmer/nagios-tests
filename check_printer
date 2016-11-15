@@ -21,7 +21,7 @@
 #                                                                              #
 ################################################################################
 
-VERSION=0.1
+VERSION=0.2
 
 STATE_OK=0
 STATE_WARNING=1
@@ -64,10 +64,6 @@ Options:
 
 values for <TEST> can be:
    CONSUM      checks all consumables
-   PAPER1      checks the amount of paper in tray no. 1
-   PAPER2      checks the amount of papaer in tray no.2
-   PAPER3      checks the amount of papar in tray no.3
-   PAGECOUNT   returns the count of sites printed
 EOF
 }
 
@@ -197,4 +193,7 @@ fi
 # test execution
 if [[ $TEST == "CONSUM" ]]; then
 	test_consumables
+else
+	echo "Error: the wanted test is unknown"
+	exit $STATE_UNKNOWN
 fi
