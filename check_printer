@@ -1,0 +1,200 @@
+#!/bin/bash
+
+################################################################################
+# A Nagios Plugin that checks printers and their consumables, using SNMP.      #
+#                                                                              #
+# Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>                     #
+#                                                                              #
+# This program is free software; you can redistribute it and/or modify         #
+# it under the terms of the GNU General Public License as published by         #
+# the Free Software Foundation; either version 3, or (at your option)          #
+# any later version.                                                           #
+#                                                                              #
+# This program is distributed in the hope that it will be useful,              #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of               #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                #
+# GNU General Public License for more details.                                 #
+#                                                                              #
+# You should have received a copy of the GNU General Public License            #
+# along with this program; if not, write to the Free Software Foundation,      #
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.           #
+#                                                                              #
+################################################################################
+
+VERSION=0.1
+
+STATE_OK=0
+STATE_WARNING=1
+STATE_CRITICAL=2
+STATE_UNKNOWN=3
+STATE_DEPENDENT=4
+
+PROG_NAME=$(basename $0)
+
+SNMPGET=$(which snmpget)
+SNMPWALK=$(which snmpwalk)
+
+print_version()
+{
+	cat <<EOF
+$PROG_NAME $VERSION
+
+Copyright (C) 2016 Martin Brehmer <software@mbrehmer.de>
+
+This is free software.  You may redistribute copies of it under the terms of
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+There is NO WARRANTY, to the extent permitted by law.
+EOF
+}
+
+print_help()
+{
+	cat <<EOF
+Usage: check_printer -p <PRINTER_IP> -c <COMMUNITY> -t <TEST>
+                     [-V] [-h]
+
+A Nagios Plugin that checks printers and their consumables, using SNMP.
+
+Options:
+   -h, --help                    print this message
+   -p, --printer <PRINTER_IP>    IP address of the printer to test
+   -c. --community <COMMUNITY>   the community string for the test
+   -t, --test <TEST>             the test to do
+   -V, --version                 print version information
+
+values for <TEST> can be:
+   CONSUM      checks all consumables
+   PAPER1      checks the amount of paper in tray no. 1
+   PAPER2      checks the amount of papaer in tray no.2
+   PAPER3      checks the amount of papar in tray no.3
+   PAGECOUNT   returns the count of sites printed
+EOF
+}
+
+test_consumables()
+{
+	EXITCODE=$STATE_OK
+	EXITSTRING=""
+
+	for ID in $($SNMPWALK -v1 -c $COMMUNITY $HOST  1.3.6.1.2.1.43.11.1.1.6.1 2>/dev/null | egrep -oe '[[:digit:]]+\ =' | cut -d " " -f1); do
+		NAME=$($SNMPGET -v1 -c $COMMUNITY $HOST  1.3.6.1.2.1.43.11.1.1.6.1.$ID 2>/dev/null | cut -d " " -f4- | tr -d "\"")
+		if [[ -z $NAME ]]; then
+			echo "Error: OIS not found" >&2
+			exit $STATUS_UNKNOWN
+		fi
+
+		STATUS=$($SNMPGET -v 1 -c $COMMUNITY $HOST 1.3.6.1.2.1.43.11.1.1.9.1.$ID 2>/dev/null |cut -d " " -f4- |tr -d "\"")
+		FULL=$($SNMPGET -v 1 -c $COMMUNITY $HOST 1.3.6.1.2.1.43.11.1.1.8.1.$ID 2>/dev/null |cut -d " " -f4- |tr -d "\"")
+
+		if [[ $FULL -gt 0 ]] && [[ $STATUS -gt 0 ]]; then
+			let "STATUS= $STATUS * 100 / $FULL"
+			if [[ $STATUS -gt 30 ]]; then
+				EXITSTRING="$EXITSTRING $NAME is at ${STATUS}%,"
+			elif [[ $STATUS -lt 30 ]] && [[ $STATUS -gt 10 ]]; then
+				EXITSTRING="$EXITSTRING $NAME is at ${STATUS}%,"
+				if [[ $EXITCODE -lt $STATE_WARNING ]]; then
+					EXITCODE=$STATE_WARNING
+				fi
+			elif [[ $STATUS -le 10 ]]; then
+				EXITSTRING="$EXITSTRING $NAME is at ${STATUS}%,"
+				EXITCODE=$CRITICAL_STATE
+			fi
+		elif [[ $STATUS -eq -3 ]]; then
+			EXITSTRING="$EXITSTRING $NAME is FULL,"
+		elif [[ $STATUS -eq -2 ]]; then
+			EXITSTRING="$EXITSTRING $NAME is at warning level,"
+			if [[ $EXITCODE -lt $STATE_WARNING ]]; then
+				EXITCODE=$STATE_WARNING
+			fi
+		elif [[ $STATUS -eq 0 ]]; then
+			EXITSTRING="$EXITSTRING $NAME is at critical level,"
+			EXITCODE=$STATE_CRITICAL
+		else
+			EXITSTRING="Error: The status of $NAME is unknown."
+			exit $STATE_WARNING
+		fi
+
+		unset NAME
+	done
+
+	if [[ $EXITCODE -eq $STATE_OK ]]; then
+		EXITSTRING="OK -$EXITSTRING"
+	elif [[ $EXITCODE -eq $STATE_WARNING ]]; then
+		EXITSTRING="WARNING -$EXITSTRING"
+	elif [[ $EXITCODE -eq $STATE_CRITICAL ]]; then
+		EXITSTRING="CRITICAL -$EXITSTRING"
+	fi
+
+	echo "$EXITSTRING"
+	exit $EXITCODE
+}
+
+SHORT_OPS="p:c:t:Vh"
+LONG_OPTS="printer:,community:,test:,verbose,help"
+
+# parameter processing
+$(getopt -T </dev/null 2>&1)
+if [[ $? -eq 4 ]]; then
+	OPTS=$(getopt -o $SHORT_OPTS -l $LONG_OPTS -- "$@")
+else
+	case $1 in
+		--version)
+			print_version
+			exit 0
+			;;
+		--help)
+			print_help
+			exit 0
+			;;
+	esac
+	OPTS=$(getopt $SHORT_OPTS "$@")
+fi
+
+if [[ $? -ne 0 ]]; then
+	print_help
+	exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		-V|--version)
+			print_version
+			exit 0
+			;;
+		-h|--help)
+			print_help
+			exit 0
+			;;
+		-p|--printer)
+			HOST=$2
+			shift 2
+			;;
+		-c|--community)
+			COMMUNITY=$2
+			shift 2
+			;;
+		-t|--test)
+			TEST=$2
+			shift 2
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			echo "Internal Error: parameter processing error: $1" >&2
+			exit $STATE_UNKNOWN
+			;;
+	esac
+done
+
+if [[ -z $HOST ]] || [[ -z $COMMUNITY ]] || [[ -z $TEST ]]; then
+	echo -e "Internal Error: not all necessary parameters have been set \n" >&2
+	print_help
+	exit $STATE_UNKNOWN
+fi
+
+# test execution
+if [[ $TEST == "CONSUM" ]]; then
+	test_consumables
+fi
