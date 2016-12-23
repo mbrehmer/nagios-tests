@@ -93,7 +93,7 @@ test_consumables()
 				fi
 			elif [[ $STATUS -le 10 ]]; then
 				EXITSTRING="$EXITSTRING $NAME is at ${STATUS}%,"
-				EXITCODE=$CRITICAL_STATE
+				EXITCODE=$STATE_CRITICAL
 			fi
 		elif [[ $STATUS -eq -3 ]]; then
 			EXITSTRING="$EXITSTRING $NAME is FULL,"
